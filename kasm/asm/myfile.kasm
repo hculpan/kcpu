@@ -1,0 +1,10 @@
+LD R0, 0x10
+LD r1, 64
+ld r7, 0
+SUB R0, 1
+ADD r1, 1
+OUT r7, r1
+CMP r0, 0x00
+beq $0x24
+BRA $0x0C
+halt
