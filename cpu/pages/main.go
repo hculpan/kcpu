@@ -28,21 +28,6 @@ func (m *MainPage) Draw(screen *ebiten.Image, g *common.Game) {
 }
 
 func (m *MainPage) Update(g *common.Game) error {
-	/*	for i := 0; i < 24; i++ {
-		g.Cpu.CursorToPos(30, i)
-		g.Cpu.SetCharacterAtCursor('H')
-		g.Cpu.SetCharacterAtCursor('e')
-		g.Cpu.SetCharacterAtCursor('l')
-		g.Cpu.SetCharacterAtCursor('l')
-		g.Cpu.SetCharacterAtCursor('o')
-		g.Cpu.SetCharacterAtCursor(' ')
-		g.Cpu.SetCharacterAtCursor('w')
-		g.Cpu.SetCharacterAtCursor('o')
-		g.Cpu.SetCharacterAtCursor('r')
-		g.Cpu.SetCharacterAtCursor('l')
-		g.Cpu.SetCharacterAtCursor('d')
-	}*/
-
 	if m.Cycle == 0 {
 		g.Cpu.SoftReset()
 	}
