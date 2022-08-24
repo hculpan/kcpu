@@ -1,10 +1,29 @@
-LD R0, 0x10
-LD r1, 64
-ld r7, 0
-SUB R0, 1
-ADD r1, 1
-OUT r7, r1
-CMP r0, 0x00
-beq $0x24
-BRA $0x0C
-halt
+            LD R0, 26       ; Set R0 to 16, countdown index
+            LD r1, 'a'      ; Set R1 to "A", character register
+            ld r7, 0        ; Set R7 to 0, this is our output port
+:loop
+            SUB R0, 1       ; Reduce index by one
+;            push r1
+            OUT STOUT, r1   ; Output the character
+            ADD r1, 1       ; Next character to print
+;            pop r1
+            noop
+            CMP r0, 0x00    ; Check if we've outputted all the character
+            Jeq end         ; Go to end if we have
+            JMP loop        ; Go to start of loop if we haven't
+:end
+            LD  R1, 10      ; Put newline in character register
+            OUT STOUT, r1   ; Output the character
+
+;:write_char
+; write_char
+; input: 
+;   r1 = ascii of character to write
+; uses:
+;   nothing
+; return:
+;   nothing
+;            OUT STOUT, r1   ; Output the character
+;            ret
+
+.const      STOUT   0

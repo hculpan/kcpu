@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var outputDir string = "."
 var outputFilename string = ""
 
 // buildCmd represents the build command
@@ -32,27 +31,16 @@ var buildCmd = &cobra.Command{
 			return
 		}
 
-		a := assembler.NewAssembleFile()
-		a.Filename = args[0]
-		a.OutputDirectory = outputDir
+		buildConfig := assembler.BuildConfig{
+			InputFilename: args[0],
+		}
 		if len(outputFilename) > 0 {
-			a.OutputFilename = outputFilename
+			buildConfig.OutputFilename = outputFilename
 		} else {
-			a.OutputFilename = a.Filename[:len(a.Filename)-len(filepath.Ext(a.Filename))] + ".kcpu"
+			buildConfig.OutputFilename = buildConfig.InputFilename[:len(buildConfig.InputFilename)-len(filepath.Ext(buildConfig.InputFilename))] + ".kcpu"
 		}
 
-		fmt.Printf("Building %s\n", a.Filename)
-
-		errs := a.Assemble()
-		if len(errs) > 0 {
-			for _, err := range errs {
-				fmt.Println(err.ToString())
-			}
-		} else {
-			fmt.Println("Build successful")
-			fmt.Printf("  Assembled program written to '%s'\n", a.OutputFilename)
-			fmt.Printf("  List file written to '%s'\n", a.Filename[:len(a.Filename)-len(filepath.Ext(a.Filename))]+".list")
-		}
+		assembler.BuildFile(buildConfig)
 	},
 }
 
