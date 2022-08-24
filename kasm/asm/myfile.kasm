@@ -1,6 +1,5 @@
             LD R0, 26       ; Set R0 to 16, countdown index
-            LD r1, 'a'      ; Set R1 to "A", character register
-            ld r7, 0        ; Set R7 to 0, this is our output port
+            LD r1, 'a'      ; Set R1 to 'a', character register
 :loop
             SUB R0, 1       ; Reduce index by one
 ;            push r1

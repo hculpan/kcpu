@@ -113,6 +113,17 @@ func writeListFile(buildConfig BuildConfig, b *BuildVisitor, s *SymbolsVisitor) 
 
 	w := bufio.NewWriter(f)
 
+	// Write code
+	lines := b.ToSrings()
+	for _, line := range lines {
+		_, err = w.WriteString("  " + line + "\n")
+		if err != nil {
+			return errors.New("unable to write listing file")
+		}
+	}
+
+	w.WriteString("\n")
+
 	// Write symbol table
 	w.WriteString("SYMBOLS:\n")
 	symbolLines := s.ToStrings()
@@ -123,17 +134,6 @@ func writeListFile(buildConfig BuildConfig, b *BuildVisitor, s *SymbolsVisitor) 
 		}
 	}
 
-	w.WriteString("\n")
-
-	// Write code
-	w.WriteString("ASSEMBLED CODE:\n")
-	lines := b.ToSrings()
-	for _, line := range lines {
-		_, err = w.WriteString("  " + line + "\n")
-		if err != nil {
-			return errors.New("unable to write listing file")
-		}
-	}
 	w.Flush()
 
 	return nil

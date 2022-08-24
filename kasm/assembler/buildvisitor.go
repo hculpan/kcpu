@@ -96,9 +96,9 @@ func (b *BuildVisitor) ToSrings() []string {
 	addr := 0
 	for _, op := range b.AssembledOps {
 		if operations.IsNoCodeOp(op) {
-			result = append(result, fmt.Sprintf("\t\t\t\t\t\t%s", op.OriginalLine))
+			result = append(result, fmt.Sprintf("                      %s", op.OriginalLine))
 		} else {
-			result = append(result, fmt.Sprintf("%04X\t%s\t\t%s", addr, strings.Replace(op.ToString(), ":", "", -1), op.OriginalLine))
+			result = append(result, fmt.Sprintf("%04X%10s        %s", addr, strings.Replace(op.ToString(), ":", "", -1), op.OriginalLine))
 			addr += 4
 		}
 	}

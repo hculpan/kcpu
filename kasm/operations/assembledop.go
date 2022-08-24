@@ -50,24 +50,29 @@ func (a AssembledOp) ToString() string {
 }
 
 func RegisterToNumber(r string) (byte, error) {
-	if len(r) != 2 {
-		return 0, errors.New("invalid register identifier: must be two characters in length")
-	}
-
 	if r[0] != 'R' && r[0] != 'r' {
 		return 0, errors.New("invalid register identifier: must begin with 'R' or 'r'")
 	}
 
-	regNum, err := strconv.Atoi(string(r[1]))
-	if err != nil || regNum < 0 || regNum > 7 {
-		return 0, errors.New("invalid register identifier: second character must be digit of 0-7")
+	var regNum byte
+	if strings.ToUpper(r[1:]) == "FLAGS" {
+		regNum = 0xFF
+	} else {
+		n, err := strconv.Atoi(r[1:])
+		if err != nil {
+			return 0, fmt.Errorf("invalid register identifer: %s", err)
+		} else if n < 0 || n > 255 {
+			return 0, errors.New("invalid register identifier: second character must be digit of 0-255")
+		} else {
+			regNum = byte(n)
+		}
 	}
 
-	return byte(regNum), nil
+	return regNum, nil
 }
 
 func IsRegister(r string) bool {
-	result, _ := regexp.MatchString("^[Rr][0-7]", r)
+	result, _ := regexp.MatchString("^[Rr]\\d{1,3}$", r)
 	return result
 }
 

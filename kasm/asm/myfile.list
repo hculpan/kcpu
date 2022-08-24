@@ -1,35 +1,33 @@
-SYMBOLS:
-       label                 loop	000C
-       label                  end	0028
-       const                STOUT	0000
+  0000  0100001A                    LD R0, 26       ; Set R0 to 16, countdown index
+  0004  01010061                    LD r1, 'a'      ; Set R1 to 'a', character register
+                        :loop
+  0008  41000001                    SUB R0, 1       ; Reduce index by one
+                        ;            push r1
+  000C  51000001                    OUT STOUT, r1   ; Output the character
+  0010  40010001                    ADD r1, 1       ; Next character to print
+                        ;            pop r1
+  0014  0000FFFF                    noop
+  0018  21000000                    CMP r0, 0x00    ; Check if we've outputted all the character
+  001C  30000024                    Jeq end         ; Go to end if we have
+  0020  33000008                    JMP loop        ; Go to start of loop if we haven't
+                        :end
+  0024  0101000A                    LD  R1, 10      ; Put newline in character register
+  0028  51000001                    OUT STOUT, r1   ; Output the character
+                        
+                        ;:write_char
+                        ; write_char
+                        ; input: 
+                        ;   r1 = ascii of character to write
+                        ; uses:
+                        ;   nothing
+                        ; return:
+                        ;   nothing
+                        ;            OUT STOUT, r1   ; Output the character
+                        ;            ret
+                        
+                        .const      STOUT   0
 
-ASSEMBLED CODE:
-  0000	0100001A		            LD R0, 26       ; Set R0 to 16, countdown index
-  0004	01010061		            LD r1, 'a'      ; Set R1 to "A", character register
-  0008	01070000		            ld r7, 0        ; Set R7 to 0, this is our output port
-  						:loop
-  000C	41000001		            SUB R0, 1       ; Reduce index by one
-  						;            push r1
-  0010	51000001		            OUT STOUT, r1   ; Output the character
-  0014	40010001		            ADD r1, 1       ; Next character to print
-  						;            pop r1
-  0018	0000FFFF		            noop
-  001C	21000000		            CMP r0, 0x00    ; Check if we've outputted all the character
-  0020	30000028		            Jeq end         ; Go to end if we have
-  0024	3300000C		            JMP loop        ; Go to start of loop if we haven't
-  						:end
-  0028	0101000A		            LD  R1, 10      ; Put newline in character register
-  002C	51000001		            OUT STOUT, r1   ; Output the character
-  						
-  						;:write_char
-  						; write_char
-  						; input: 
-  						;   r1 = ascii of character to write
-  						; uses:
-  						;   nothing
-  						; return:
-  						;   nothing
-  						;            OUT STOUT, r1   ; Output the character
-  						;            ret
-  						
-  						.const      STOUT   0
+SYMBOLS:
+       label                 loop	0008
+       label                  end	0024
+       const                STOUT	0000

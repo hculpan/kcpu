@@ -5,15 +5,32 @@ import (
 	"fmt"
 )
 
-const (
-	CMP_NOTSET = iota
-	CMP_EQUALS
-	CMP_GT
-	CMP_LT
-)
+/****************************************
+* Registers
+*
+* R0-R7 : 16-bit general purpose
+* PC    : 16-bit program counter
+* SP    : 16-bit stack pointer
+*
+* Flags : 16-bit register
+****************************************/
+
+/****************************************
+* Memory map
+*
+* 0x0000 - 0xEFFB : Empty (61,435 bytes)
+* 0xEFFC          : JMP 0xF3FC (1 byte)
+* 0xF000 - 0xF780 : Video memory (1,920 bytes)
+* 0xF781 - 0xF790 : Keyboard buffer (16 bytes)
+* 0xF791 - 0xF7FE : Empty (109 bytes)
+* 0xF7FF - 0xFFFF : Stack, starts at 0xFFFF
+                    going down (2,048 bytes)
+****************************************/
+
+const FLAGS = 0xff
 
 const (
-	VIDEO_START = 62464
+	VIDEO_START = 0xF000
 	VIDEO_SIZE  = 1920
 	VIDEO_END   = VIDEO_START + VIDEO_SIZE
 	VIDEO_ROWS  = 24
@@ -21,27 +38,31 @@ const (
 )
 
 type Cpu struct {
-	PC                uint16
-	SP                uint16
-	Registers         []uint16
-	Memory            []byte
-	CmpResult         int
+	// Computation-related
+	PC        uint16
+	SP        uint16
+	Registers []uint16
+	Memory    []byte
+	Cycle     int
+
+	// Video-related
 	CursorPosInMemory int
 	CursorOn          bool
 	CursorStatus      bool
-	Cycle             int
 }
 
 func NewCpu() Cpu {
 	result := Cpu{
-		PC:                0,
-		SP:                0xFFFF,
-		Registers:         make([]uint16, 8),
-		Memory:            make([]byte, 65536),
+		PC:        0,
+		SP:        0xFFFF,
+		Registers: make([]uint16, 256),
+		Memory:    make([]byte, 65536),
+		Cycle:     0,
+
+		// Video-related
 		CursorPosInMemory: VIDEO_START,
 		CursorOn:          true,
 		CursorStatus:      true,
-		Cycle:             0,
 	}
 	result.LoadRom()
 
@@ -49,7 +70,7 @@ func NewCpu() Cpu {
 }
 
 func (c *Cpu) ToString() string {
-	result := fmt.Sprintf("PC:%04X  %02X:%s                CMP:%02X\n", c.PC, c.Memory[c.PC], c.disassembleInstruction(c.Memory[c.PC]), c.CmpResult)
+	result := fmt.Sprintf("PC:%04X  %02X:%s                Flags:%04X\n", c.PC, c.Memory[c.PC], c.disassembleInstruction(c.Memory[c.PC]), c.Registers[FLAGS])
 	result += fmt.Sprintf("  R0:%04X  R1:%04X  R2:%04X  R3:%04X  R4:%04X  R5:%04X  R6:%04X  R7:%04X",
 		c.Registers[0], c.Registers[1], c.Registers[2], c.Registers[3], c.Registers[4], c.Registers[5], c.Registers[6], c.Registers[7])
 	return result
@@ -58,8 +79,7 @@ func (c *Cpu) ToString() string {
 func (c *Cpu) LoadRom() {
 	c.Memory[VIDEO_START-4] = 0x33
 	c.Memory[VIDEO_START-3] = 0x00
-	c.Memory[VIDEO_START-2] = 0xF3
-	c.Memory[VIDEO_START-1] = 0xFC
+	c.set16BitValueAtAddress(VIDEO_START-4, VIDEO_START-2)
 }
 
 func (c *Cpu) SoftReset() {
@@ -81,6 +101,7 @@ func (c *Cpu) StartExecution() error {
 }
 
 func (c *Cpu) ExecuteSingle() error {
+	//	fmt.Printf("[%10d] %04x\n", c.Cycle, c.PC)
 	i := c.NextOperation()
 	err := c.Execute(i)
 	if err != nil {
@@ -241,42 +262,30 @@ func (c *Cpu) Execute(i Instruction) error {
 	case 0x20: // CMP r, r
 		v1 := c.Registers[i.Register]
 		v2 := c.Registers[i.DataL]
-		if v1 == v2 {
-			c.CmpResult = CMP_EQUALS
-		} else if v1 < v2 {
-			c.CmpResult = CMP_LT
-		} else {
-			c.CmpResult = CMP_GT
-		}
+		c.CompareValues(v1, v2)
 		c.PC = c.PC + 4
 	case 0x21: // CMP r, value
 		v1 := c.Registers[i.Register]
 		v2 := i.GetDataAsValue()
-		if v1 == v2 {
-			c.CmpResult = CMP_EQUALS
-		} else if v1 < v2 {
-			c.CmpResult = CMP_LT
-		} else {
-			c.CmpResult = CMP_GT
-		}
+		c.CompareValues(v1, v2)
 		c.PC = c.PC + 4
 	case 0x30: // JEQ addr
 		addr := i.GetDataAsValue()
-		if c.CmpResult == CMP_EQUALS {
+		if c.Registers[FLAGS]&0b0000000000000011 == 3 {
 			c.PC = addr
 		} else {
 			c.PC = c.PC + 4
 		}
 	case 0x31: // JGT addr
 		addr := i.GetDataAsValue()
-		if c.CmpResult == CMP_GT {
+		if c.Registers[FLAGS]&0b0000000000000011 == 2 {
 			c.PC = addr
 		} else {
 			c.PC = c.PC + 4
 		}
 	case 0x32: // JLT addr
 		addr := i.GetDataAsValue()
-		if c.CmpResult == CMP_LT {
+		if c.Registers[FLAGS]&0b0000000000000011 == 1 {
 			c.PC = addr
 		} else {
 			c.PC = c.PC + 4
@@ -335,4 +344,17 @@ func (c *Cpu) Execute(i Instruction) error {
 	}
 
 	return nil
+}
+
+func (c *Cpu) CompareValues(v1 uint16, v2 uint16) {
+	if v1 == v2 {
+		c.Registers[FLAGS] |= 1
+		c.Registers[FLAGS] |= 1 << 1
+	} else if v1 < v2 {
+		c.Registers[FLAGS] |= 1
+		c.Registers[FLAGS] &= ^(uint16(1) << 1)
+	} else {
+		c.Registers[FLAGS] &= ^uint16(1)
+		c.Registers[FLAGS] |= 1 << 1
+	}
 }
