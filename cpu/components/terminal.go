@@ -21,19 +21,6 @@ func NewTerminalComponent(x, y, width, height int32) *TerminalComponent {
 }
 
 func (c *TerminalComponent) DrawComponent(r *sdl.Renderer) error {
-	/*	p := message.NewPrinter(language.English)
-		msg := p.Sprintf("Cycle : %d", model.Game.Cpu.Cycle)
-		text, err := resources.Fonts.CreateTexture(msg, sdl.Color{R: 50, G: 255, B: 50, A: 255}, "HackBold-24", r)
-		if err != nil {
-			return err
-		}
-		_, _, w, h, err := text.Query()
-		if err != nil {
-			return err
-		}
-		r.Copy(text, &sdl.Rect{X: 0, Y: 0, W: w, H: h}, &sdl.Rect{X: c.X + 5, Y: c.Y, W: int32(w), H: int32(h)})*/
-
-	// Draw the sample text
 	for i := 0; i < 24; i++ {
 		bytes := model.Game.Cpu.GetVideoCharacterLine(i)
 		text, err := resources.Fonts.CreateTexture(string(bytes), sdl.Color{R: 50, G: 255, B: 50, A: 255}, "CourierNew-24", r)

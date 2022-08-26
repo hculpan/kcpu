@@ -44,39 +44,3 @@ func (m *MainPage) MouseButtonEvent(event *sdl.MouseButtonEvent) bool {
 
 	return false
 }
-
-/*
-type MainPage struct {
-	Cycle int
-}
-
-func NewMainPage() *MainPage {
-	return &MainPage{Cycle: 0}
-}
-
-func (m *MainPage) Draw(screen *ebiten.Image, g *common.Game) {
-	const border = 20
-
-	// Draw the sample text
-	for i := 0; i < 24; i++ {
-		bytes := g.Cpu.GetVideoCharacterLine(i)
-		text.Draw(screen, string(bytes), g.NormalFont, border, (26*i)+(border*2), color.RGBA{R: 50, G: 200, B: 50, A: 255})
-	}
-}
-
-func (m *MainPage) Update(g *common.Game) error {
-	if m.Cycle == 0 {
-		g.Cpu.SoftReset()
-	}
-
-	for i := 0; i < 5000; i++ {
-		err := g.Cpu.ExecuteSingle()
-		if err != nil {
-			log.Fatal(err)
-		}
-		m.Cycle++
-	}
-
-	return nil
-}
-*/
