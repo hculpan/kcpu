@@ -5,35 +5,48 @@ package main
 }*/
 
 import (
+	"embed"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
-	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hculpan/kcpu/cpu/common"
-	"github.com/hculpan/kcpu/cpu/pages"
+	"github.com/hculpan/go-sdl-lib/component"
+	"github.com/hculpan/go-sdl-lib/resources"
+	"github.com/hculpan/kcpu/cpu/controllers"
 )
 
-const (
-	screenWidth  = 805
-	screenHeight = (25 * 24) + 60
-)
+//go:embed resources/fonts/*
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+var appFonts embed.FS
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Must specify a file to execute")
+		fmt.Println("Must provide program to execute as second parameter")
 		return
 	}
 
-	common.RegisterPage("main", pages.NewMainPage())
+	component.SetupSDL()
 
-	if err := ebiten.RunGame(common.NewGame(screenWidth, screenHeight, os.Args[1])); err != nil {
+	if err := resources.FontsInit(appFonts); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := resources.Fonts.RegisterFont("HackBold-24", "built-in-fonts/TruenoLight.otf", 24); err != nil {
 		log.Fatal(err)
+	}
+	if err := resources.Fonts.RegisterFont("CourierNew-24", "resources/fonts/Courier-New-Regular.ttf", 24); err != nil {
+		log.Fatal(err)
+	}
+
+	// Since our cells are all 3 pixels with a 1 pixel barrier
+	// around them, we want to make sure our widht/height is
+	// a divisor of 4
+	var gameWidth int32 = 570
+	var gameHeight int32 = 625
+
+	gamecontroller := controllers.NewCpuController(gameWidth, gameHeight, os.Args[1])
+	if err := gamecontroller.Run(); err != nil {
+		fmt.Println(err.Error())
 	}
 }

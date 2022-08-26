@@ -101,7 +101,7 @@ func (c *Cpu) StartExecution() error {
 }
 
 func (c *Cpu) ExecuteSingle() error {
-	//	fmt.Printf("[%10d] %04x\n", c.Cycle, c.PC)
+	//fmt.Printf("[%10d] %04x\n", c.Cycle, c.PC)
 	i := c.NextOperation()
 	err := c.Execute(i)
 	if err != nil {
