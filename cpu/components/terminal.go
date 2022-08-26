@@ -31,7 +31,7 @@ func (c *TerminalComponent) DrawComponent(r *sdl.Renderer) error {
 		if err != nil {
 			return err
 		}
-		r.Copy(text, &sdl.Rect{X: 0, Y: 0, W: w, H: h}, &sdl.Rect{X: c.X + 5, Y: c.Y + int32(i*26), W: int32(w), H: int32(h)})
+		r.Copy(text, &sdl.Rect{X: 0, Y: 0, W: w, H: h}, &sdl.Rect{X: c.X + 5, Y: c.Y + int32(i*60), W: int32(w), H: int32(h)})
 	}
 
 	return nil

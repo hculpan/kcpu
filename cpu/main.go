@@ -32,18 +32,18 @@ func main() {
 		return
 	}
 
-	if err := resources.Fonts.RegisterFont("HackBold-24", "built-in-fonts/TruenoLight.otf", 24); err != nil {
+	if err := resources.Fonts.RegisterFont("HackBold-24", "built-in-fonts/TruenoLight.otf", 64); err != nil {
 		log.Fatal(err)
 	}
-	if err := resources.Fonts.RegisterFont("CourierNew-24", "resources/fonts/Courier-New-Regular.ttf", 24); err != nil {
+	if err := resources.Fonts.RegisterFont("CourierNew-24", "resources/fonts/Courier-New-Regular.ttf", 64); err != nil {
 		log.Fatal(err)
 	}
 
 	// Since our cells are all 3 pixels with a 1 pixel barrier
 	// around them, we want to make sure our widht/height is
 	// a divisor of 4
-	var gameWidth int32 = 570
-	var gameHeight int32 = 625
+	var gameWidth int32 = 767
+	var gameHeight int32 = 726
 
 	gamecontroller := controllers.NewCpuController(gameWidth, gameHeight, os.Args[1])
 	if err := gamecontroller.Run(); err != nil {
