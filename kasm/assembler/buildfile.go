@@ -53,7 +53,13 @@ func BuildFile(buildConfig BuildConfig) {
 	}
 	fmt.Printf("- List file written to '%s'\n", buildConfig.InputFilename[:len(buildConfig.InputFilename)-len(filepath.Ext(buildConfig.InputFilename))]+".list")
 
-	if len(visitor.Errors()) == 0 {
+	if err := writeSymbolsFile(buildConfig, &visitor, &symbols); err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Printf("- Symbols file written to '%s'\n", buildConfig.InputFilename[:len(buildConfig.InputFilename)-len(filepath.Ext(buildConfig.InputFilename))]+".sym")
+
+	if len(visitor.Errors()) == 0 && buildConfig.OutputAssembledFile {
 		if err := writeAssembledFile(buildConfig, &visitor); err != nil {
 			fmt.Println(err)
 			return
@@ -102,6 +108,32 @@ func writeAssembledFile(buildConfig BuildConfig, b *BuildVisitor) error {
 	return nil
 }
 
+func writeSymbolsFile(buildConfig BuildConfig, b *BuildVisitor, s *SymbolsVisitor) error {
+	filename := buildConfig.InputFilename[:len(buildConfig.InputFilename)-len(filepath.Ext(buildConfig.InputFilename))] + ".sym"
+
+	f, err := os.Create(filename)
+	if err != nil {
+		return errors.New("unable to create list file")
+	}
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
+	// Write symbol table
+	w.WriteString("Symbols:\n")
+	symbolLines := s.ToStrings()
+	for _, line := range symbolLines {
+		_, err = w.WriteString(line + "\n")
+		if err != nil {
+			return errors.New("unable to write listing file")
+		}
+	}
+
+	w.Flush()
+
+	return nil
+}
+
 func writeListFile(buildConfig BuildConfig, b *BuildVisitor, s *SymbolsVisitor) error {
 	listFilename := buildConfig.InputFilename[:len(buildConfig.InputFilename)-len(filepath.Ext(buildConfig.InputFilename))] + ".list"
 
@@ -117,18 +149,6 @@ func writeListFile(buildConfig BuildConfig, b *BuildVisitor, s *SymbolsVisitor) 
 	lines := b.ToSrings()
 	for _, line := range lines {
 		_, err = w.WriteString("  " + line + "\n")
-		if err != nil {
-			return errors.New("unable to write listing file")
-		}
-	}
-
-	w.WriteString("\n")
-
-	// Write symbol table
-	w.WriteString("SYMBOLS:\n")
-	symbolLines := s.ToStrings()
-	for _, line := range symbolLines {
-		_, err = w.WriteString(line + "\n")
 		if err != nil {
 			return errors.New("unable to write listing file")
 		}

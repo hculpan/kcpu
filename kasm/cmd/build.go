@@ -1,13 +1,11 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/hculpan/kcpu/kasm/assembler"
 	"github.com/spf13/cobra"
@@ -32,12 +30,13 @@ var buildCmd = &cobra.Command{
 		}
 
 		buildConfig := assembler.BuildConfig{
-			InputFilename: args[0],
+			InputFilename:       args[0],
+			OutputAssembledFile: true,
 		}
 		if len(outputFilename) > 0 {
 			buildConfig.OutputFilename = outputFilename
 		} else {
-			buildConfig.OutputFilename = buildConfig.InputFilename[:len(buildConfig.InputFilename)-len(filepath.Ext(buildConfig.InputFilename))] + ".kcpu"
+			buildConfig.SetDefaultOutputFilename()
 		}
 
 		assembler.BuildFile(buildConfig)

@@ -2,14 +2,14 @@ package operations
 
 import "github.com/hculpan/kcpu/kasm/common"
 
-const HALT_OPCODE = 0xFE
+const HALT_OPCODE = 0xFF
 
 func AssemblerHalt(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
 	var result AssembledOp
 	if len(fields) > 1 {
 		result = NewAssembledOp(HALT_OPCODE, 0x01, 0xFF, 0xFF, originalLine)
 	} else {
-		result = NewAssembledOp(HALT_OPCODE, 0xFE, 0xFE, 0xFE, originalLine)
+		result = NewAssembledOp(HALT_OPCODE, 0xFF, 0xFF, 0xFF, originalLine)
 
 	}
 	return &result, nil

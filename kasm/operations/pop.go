@@ -6,7 +6,7 @@ import (
 	"github.com/hculpan/kcpu/kasm/common"
 )
 
-func AssemblerPushOp(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
+func AssemblerPopOp(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
 	if len(fields) != 2 {
 		return nil, []common.AssemblerError{common.NewAssemblerError("invalid op: should have one argument", lineNum)}
 	}
@@ -16,7 +16,7 @@ func AssemblerPushOp(fields []string, lineNum int, originalLine string, symbolsT
 		return nil, []common.AssemblerError{common.NewAssemblerError(fmt.Sprintf("invalid register identifier: '%s'", fields[1]), lineNum)}
 	}
 
-	result := NewAssembledOp(0x60, r, 0x00, 0x00, originalLine)
+	result := NewAssembledOp(0x61, r, 0x00, 0x00, originalLine)
 
 	return &result, nil
 }

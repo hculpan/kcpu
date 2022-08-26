@@ -1,18 +1,32 @@
-  0000  0100001A                    LD R0, 26       ; Set R0 to 16, countdown index
-  0004  01010061                    LD r1, 'a'      ; Set R1 to 'a', character register
+  0000  3300001C                    jmp start
+                        
+                        .const      STDOUT      0
+                        
+                        :counter
+  0004  62020361        .db         'b', 0x02, 0x03, 'a', 0x05
+  0008  05000000        .db         'b', 0x02, 0x03, 'a', 0x05
+                        :msg
+  000C  48656C6C        .db         "Hello, world!", 0x00
+  0010  6F2C2077        .db         "Hello, world!", 0x00
+  0014  6F726C64        .db         "Hello, world!", 0x00
+  0018  21000000        .db         "Hello, world!", 0x00
+                        
+                        :start
+  001C  0100000C                    ld      R0, msg
                         :loop
-  0008  41000001                    SUB R0, 1       ; Reduce index by one
-                        ;            push r1
-  000C  51000001                    OUT STOUT, r1   ; Output the character
-  0010  40010001                    ADD r1, 1       ; Next character to print
-                        ;            pop r1
-  0014  0000FFFF                    noop
-  0018  21000000                    CMP r0, 0x00    ; Check if we've outputted all the character
-  001C  30000024                    Jeq end         ; Go to end if we have
-  0020  33000008                    JMP loop        ; Go to start of loop if we haven't
+  0020  04010000                    ld      R1, [R0]
+  0024  21010000                    cmp     R1, 0x00    ; Check if we've outputted all the character
+  0028  3000003C                    jeq     end         ; Go to end if we have
+  002C  81010008                    shr     R1, 8
+  0030  51000001                    out     STDOUT, R1   ; Output the character
+  0034  40000001                    add     R0, 1       ; Next character to print
+  0038  33000020                    jmp     loop        ; Go to start of loop if we haven't
                         :end
-  0024  0101000A                    LD  R1, 10      ; Put newline in character register
-  0028  51000001                    OUT STOUT, r1   ; Output the character
+  003C  0101000A                    ld      R1, 10      ; Put newline in character register
+  0040  51000001                    out     STDOUT, r1   ; Output the character
+                        
+                        :endprog
+  0044  33000044                    jmp     endprog     ; continuous loop
                         
                         ;:write_char
                         ; write_char
@@ -25,9 +39,3 @@
                         ;            OUT STOUT, r1   ; Output the character
                         ;            ret
                         
-                        .const      STOUT   0
-
-SYMBOLS:
-       label                 loop	0008
-       label                  end	0024
-       const                STOUT	0000

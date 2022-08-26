@@ -39,6 +39,16 @@ func NewAssembledOpWithAddress(op byte, register byte, addr uint16, originalLine
 	}
 }
 
+func NewAssembledOpAsData(data1 byte, data2 byte, data3 byte, data4 byte, originalLine string) AssembledOp {
+	return AssembledOp{
+		Op:           data1,
+		Register:     data2,
+		DataH:        data3,
+		DataL:        data4,
+		OriginalLine: originalLine,
+	}
+}
+
 func (a AssembledOp) GetDataAsAddress() uint16 {
 	var result uint16 = uint16(a.DataH) << 8
 	result |= uint16(a.DataL)
@@ -103,7 +113,7 @@ func FieldToValue(r string, symbolsTable common.SymbolsTable) (uint16, error) {
 		}
 	} else if unicode.IsDigit(rune(r[0])) {
 		base := 10
-		if len(r) > 2 && strings.HasPrefix(r, "0x") {
+		if len(r) > 2 && (strings.HasPrefix(r, "0x") || strings.HasPrefix(r, "0X")) {
 			base = 16
 			r = r[2:]
 		} else if len(r) > 2 && (strings.HasPrefix(r, "0B") || strings.HasPrefix(r, "0b")) {

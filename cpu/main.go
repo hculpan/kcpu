@@ -31,10 +31,8 @@ func main() {
 		return
 	}
 
-	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("KCPU")
 	common.RegisterPage("main", pages.NewMainPage())
-	common.SwitchPage("main")
+
 	if err := ebiten.RunGame(common.NewGame(screenWidth, screenHeight, os.Args[1])); err != nil {
 		log.Fatal(err)
 	}

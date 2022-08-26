@@ -42,7 +42,12 @@ func NewSymbol(name string, value uint16, symbolType int) Symbol {
 }
 
 func (s *SymbolsVisitor) ProcessLine(lineText string, lineNum int) bool {
-	fields := SplitLine(lineText)
+	fields, err := SplitLine(lineText)
+	if err != nil {
+		s.errors = append(s.errors, common.NewAssemblerError(err.Error(), lineNum))
+		return true
+	}
+
 	if len(fields) > 0 && fields[0][0] == ':' {
 		label := fields[0][1:]
 		s.Symbols[label] = NewSymbol(label, s.currAddress, SYM_TYPE_LABEL)
@@ -50,6 +55,8 @@ func (s *SymbolsVisitor) ProcessLine(lineText string, lineNum int) bool {
 		switch strings.ToUpper(fields[0]) {
 		case ".CONST":
 			return s.constDirective(fields, lineText, lineNum)
+		case ".DB":
+			return s.dbDirective(fields, lineText, lineNum)
 		}
 	} else if len(fields) > 0 {
 		s.currAddress += 4
@@ -74,6 +81,24 @@ func (s *SymbolsVisitor) constDirective(fields []string, lineText string, lineNu
 	}
 
 	s.Symbols[fields[1]] = NewSymbol(fields[1], v, SYM_TYPE_CONST)
+	return false
+}
+
+func (s *SymbolsVisitor) dbDirective(fields []string, lineText string, lineNum int) bool {
+	var memLength int = 0
+	for i := 1; i < len(fields); i++ {
+		str := fields[i]
+		if str[0] == '"' {
+			str = strings.Replace(str, "\"", "", -1)
+			memLength += len(str)
+		} else {
+			memLength++
+		}
+	}
+	if memLength%4 != 0 {
+		memLength = ((memLength / 4) + 1) * 4
+	}
+	s.currAddress += uint16(memLength)
 	return false
 }
 

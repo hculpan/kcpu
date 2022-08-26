@@ -12,14 +12,14 @@ type Page interface {
 }
 
 var CurrentPage Page
-var pages map[string]Page = make(map[string]Page)
+var pagesMap map[string]Page = make(map[string]Page)
 
 func RegisterPage(pageName string, page Page) {
-	pages[pageName] = page
+	pagesMap[pageName] = page
 }
 
 func SwitchPage(pageName string) error {
-	if v, ok := pages[pageName]; ok {
+	if v, ok := pagesMap[pageName]; ok {
 		CurrentPage = v
 		return nil
 	}

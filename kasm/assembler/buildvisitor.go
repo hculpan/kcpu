@@ -30,6 +30,11 @@ func (b *BuildVisitor) addOp(op *operations.AssembledOp) {
 	}
 }
 
+func (b *BuildVisitor) addError(err common.AssemblerError) bool {
+	b.AssemblerErrors = append(b.AssemblerErrors, err)
+	return true
+}
+
 func (b *BuildVisitor) addErrors(errors []common.AssemblerError) bool {
 	if len(errors) > 0 {
 		b.AssemblerErrors = append(b.AssemblerErrors, errors...)
@@ -44,21 +49,20 @@ func (b *BuildVisitor) addOpAndErrors(op *operations.AssembledOp, errors []commo
 	return b.addErrors(errors)
 }
 
-func removeComments(text string) string {
-	for {
-		pos := strings.Index(text, ";")
-		if pos < 0 {
-			break
-		}
-		text = text[:pos]
+func (b *BuildVisitor) addOpsAndErrors(ops []*operations.AssembledOp, errors []common.AssemblerError) bool {
+	for _, op := range ops {
+		b.addOp(op)
 	}
-
-	return text
+	return b.addErrors(errors)
 }
 
 func (b *BuildVisitor) ProcessLine(lineText string, lineNum int) bool {
-	fields := SplitLine(lineText)
-	if len(fields) == 0 || fields[0][0] == ':' || fields[0][0] == '.' { // line with label
+	fields, err := SplitLine(lineText)
+	if err != nil {
+		return b.addError(common.NewAssemblerError(err.Error(), lineNum))
+	}
+
+	if len(fields) == 0 || fields[0][0] == ':' { // line with label
 		return b.addOpAndErrors(operations.NewNoCode(lineText))
 	}
 
@@ -85,6 +89,18 @@ func (b *BuildVisitor) ProcessLine(lineText string, lineNum int) bool {
 		return b.addOpAndErrors(operations.AssemblerMathOp(fields, lineNum, lineText, b.Symbols))
 	case "OUT":
 		return b.addOpAndErrors(operations.AssemblerOutOp(fields, lineNum, lineText, b.Symbols))
+	case "PUSH":
+		return b.addOpAndErrors(operations.AssemblerPushOp(fields, lineNum, lineText, b.Symbols))
+	case "POP":
+		return b.addOpAndErrors(operations.AssemblerPopOp(fields, lineNum, lineText, b.Symbols))
+	case "SHL":
+		return b.addOpAndErrors(operations.AssemblerShlOp(fields, lineNum, lineText, b.Symbols))
+	case "SHR":
+		return b.addOpAndErrors(operations.AssemblerShrOp(fields, lineNum, lineText, b.Symbols))
+	case ".CONST":
+		return b.addOpAndErrors(operations.AssemblerConstDirective(fields, lineNum, lineText, b.Symbols))
+	case ".DB":
+		return b.addOpsAndErrors(operations.AssemblerDbDirective(fields, lineNum, lineText, b.Symbols))
 	default:
 		return b.addErrors([]common.AssemblerError{common.NewAssemblerError("unknown operation '"+op+"'", lineNum)})
 	}

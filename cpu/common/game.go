@@ -18,6 +18,10 @@ func NewGame(screenWidth int, screenHeight int, execFile string) *Game {
 		log.Fatal(err)
 	}
 
+	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowTitle("KCPU")
+	SwitchPage("main")
+
 	c := executor.NewCpu()
 	result := &Game{
 		Cpu:          &c,

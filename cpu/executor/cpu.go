@@ -54,7 +54,7 @@ type Cpu struct {
 func NewCpu() Cpu {
 	result := Cpu{
 		PC:        0,
-		SP:        0xFFFF,
+		SP:        0xFFFE,
 		Registers: make([]uint16, 256),
 		Memory:    make([]byte, 65536),
 		Cycle:     0,
@@ -200,7 +200,7 @@ func (c *Cpu) disassembleInstruction(op byte) string {
 	switch op {
 	case 0x00:
 		return "NOOP"
-	case 0x01, 0x02, 0x03:
+	case 0x01, 0x02, 0x03, 0x04:
 		return "LD"
 	case 0x10:
 		return "ST"
@@ -246,6 +246,10 @@ func (c *Cpu) Execute(i Instruction) error {
 		c.PC = c.PC + 4
 	case 0x03: // LD r <= address
 		addr := i.GetDataAsValue()
+		c.Registers[i.Register] = c.get16BitValueAtAddress(addr)
+		c.PC = c.PC + 4
+	case 0x04: // LD r <= [r]
+		addr := c.Registers[i.DataL]
 		c.Registers[i.Register] = c.get16BitValueAtAddress(addr)
 		c.PC = c.PC + 4
 	case 0x10: // ST r, address
@@ -328,12 +332,31 @@ func (c *Cpu) Execute(i Instruction) error {
 		}
 		c.SetCharacterAtCursor(byte(c.Registers[i.DataL]))
 		c.PC = c.PC + 4
-	case 0xFE:
+	case 0x60: // PUSH r
+		c.Push(c.Registers[i.Register])
+		c.PC = c.PC + 4
+	case 0x61: // POP r
+		v, err := c.Pop()
+		if err != nil {
+			return err
+		}
+		c.Registers[i.Register] = v
+		c.PC = c.PC + 4
+	case 0x80: // SHL r, value
+		v := c.Registers[i.Register]
+		bits := i.GetDataAsValue() % 16
+		c.Registers[i.Register] = v << bits
+		c.PC = c.PC + 4
+	case 0x81: // SHR r, value
+		v := c.Registers[i.Register]
+		bits := i.GetDataAsValue() % 16
+		c.Registers[i.Register] = v >> bits
+		c.PC = c.PC + 4
+	case 0xFF:
 		if i.Register == 1 {
 			fmt.Println(c.ToString())
 		}
 		return errors.New("halt")
-	case 0xFF: // noop
 	default:
 		return fmt.Errorf("unknown operation: %02X", i.Op)
 	}
@@ -344,6 +367,23 @@ func (c *Cpu) Execute(i Instruction) error {
 	}
 
 	return nil
+}
+
+func (c *Cpu) Push(v uint16) {
+	c.set16BitValueAtAddress(v, c.SP)
+	c.SP -= 2
+}
+
+func (c *Cpu) Pop() (uint16, error) {
+	sp := uint(c.SP)
+	sp += 2
+	if sp > 0xFFFF {
+		return 0, errors.New("stack underflow")
+	}
+	c.SP = uint16(sp)
+	result := c.get16BitValueAtAddress(c.SP)
+
+	return result, nil
 }
 
 func (c *Cpu) CompareValues(v1 uint16, v2 uint16) {

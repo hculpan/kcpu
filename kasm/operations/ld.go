@@ -8,7 +8,7 @@ import (
 
 func AssemblerLdOp(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
 	if len(fields) != 3 {
-		return nil, []common.AssemblerError{common.NewAssemblerError("invalid op: should have three arguments", lineNum)}
+		return nil, []common.AssemblerError{common.NewAssemblerError("invalid op: should have two arguments", lineNum)}
 	}
 
 	r, err := RegisterToNumber(fields[1])
@@ -17,7 +17,16 @@ func AssemblerLdOp(fields []string, lineNum int, originalLine string, symbolsTab
 	}
 
 	var result AssembledOp
-	if IsRegister(fields[2]) {
+	if fields[2][0] == '[' {
+		if fields[2][len(fields[2])-1:] != "]" {
+			return nil, []common.AssemblerError{common.NewAssemblerError(fmt.Sprintf("invalid register in data: '%s'", fields[2]), lineNum)}
+		}
+		r2, err := RegisterToNumber(fields[2][1 : len(fields[2])-1])
+		if err != nil {
+			return nil, []common.AssemblerError{common.NewAssemblerError(fmt.Sprintf("invalid register in data: '%s'", fields[2]), lineNum)}
+		}
+		result = NewAssembledOp(4, r, 0, r2, originalLine)
+	} else if IsRegister(fields[2]) {
 		r2, err := RegisterToNumber(fields[2])
 		if err != nil {
 			return nil, []common.AssemblerError{common.NewAssemblerError(fmt.Sprintf("invalid register in data: '%s'", fields[2]), lineNum)}

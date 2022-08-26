@@ -8,7 +8,7 @@ import (
 
 func AssemblerOutOp(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
 	if len(fields) != 3 {
-		return nil, []common.AssemblerError{common.NewAssemblerError("invalid op: should have three arguments", lineNum)}
+		return nil, []common.AssemblerError{common.NewAssemblerError("invalid op: should have two arguments", lineNum)}
 	}
 
 	var r byte

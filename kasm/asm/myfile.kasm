@@ -1,18 +1,28 @@
-            LD R0, 26       ; Set R0 to 16, countdown index
-            LD r1, 'a'      ; Set R1 to 'a', character register
+            jmp start
+
+.const      STDOUT      0
+
+:counter
+.db         'b', 0x02, 0x03, 'a', 0x05
+:msg
+.db         "Hello, world!", 0x00
+
+:start
+            ld      R0, msg
 :loop
-            SUB R0, 1       ; Reduce index by one
-;            push r1
-            OUT STOUT, r1   ; Output the character
-            ADD r1, 1       ; Next character to print
-;            pop r1
-            noop
-            CMP r0, 0x00    ; Check if we've outputted all the character
-            Jeq end         ; Go to end if we have
-            JMP loop        ; Go to start of loop if we haven't
+            ld      R1, [R0]
+            cmp     R1, 0x00    ; Check if we've outputted all the character
+            jeq     end         ; Go to end if we have
+            shr     R1, 8
+            out     STDOUT, R1   ; Output the character
+            add     R0, 1       ; Next character to print
+            jmp     loop        ; Go to start of loop if we haven't
 :end
-            LD  R1, 10      ; Put newline in character register
-            OUT STOUT, r1   ; Output the character
+            ld      R1, 10      ; Put newline in character register
+            out     STDOUT, r1   ; Output the character
+
+:endprog
+            jmp     endprog     ; continuous loop
 
 ;:write_char
 ; write_char
@@ -25,4 +35,3 @@
 ;            OUT STOUT, r1   ; Output the character
 ;            ret
 
-.const      STOUT   0
