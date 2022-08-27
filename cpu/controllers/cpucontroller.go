@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"fmt"
-
 	"github.com/hculpan/go-sdl-lib/component"
 	"github.com/hculpan/go-sdl-lib/game"
 	"github.com/hculpan/kcpu/cpu/model"
@@ -21,7 +19,6 @@ func NewCpuController(gameWidth, gameHeight int32, programFilename string) CpuCo
 
 	result.Game = model.NewCpuGame(gameWidth, gameHeight, 0.1, programFilename)
 	result.Window = component.NewWindow(gameWidth, gameHeight, "KCPU", windowBackground)
-	fmt.Printf("%d, %d\n", result.Window.Width, result.Window.Height)
 
 	result.RegisterPages()
 
@@ -30,4 +27,5 @@ func NewCpuController(gameWidth, gameHeight int32, programFilename string) CpuCo
 
 func (c *CpuController) RegisterPages() {
 	component.RegisterPage(pages.NewMainPage("MainPage", 0, 0, c.Window.Width, c.Window.Height))
+	component.RegisterPage(pages.NewErrorPage("ErrorPage", 0, 0, c.Window.Width, c.Window.Height))
 }

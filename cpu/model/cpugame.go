@@ -14,7 +14,8 @@ import (
 type CpuGame struct {
 	component.BaseGame
 
-	Cpu *executor.Cpu
+	Cpu   *executor.Cpu
+	Error error
 }
 
 var Game *CpuGame
@@ -45,7 +46,8 @@ func (g *CpuGame) Update() error {
 	for i := 0; i < 5000; i++ {
 		err := g.Cpu.ExecuteSingle()
 		if err != nil {
-			log.Fatal(err)
+			g.Error = err
+			component.SwitchPage("ErrorPage")
 		}
 	}
 

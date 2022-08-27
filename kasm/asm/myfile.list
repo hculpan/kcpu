@@ -27,6 +27,7 @@
                         
                         :endprog
   0044  33000044                    jmp     endprog     ; continuous loop
+  0048  FFFFFFFF                    halt
                         
                         ;:write_char
                         ; write_char

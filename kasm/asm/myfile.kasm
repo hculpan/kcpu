@@ -23,6 +23,7 @@
 
 :endprog
             jmp     endprog     ; continuous loop
+            halt
 
 ;:write_char
 ; write_char

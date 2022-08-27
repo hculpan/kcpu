@@ -1,8 +1,8 @@
 Symbols:
-       label              counter	0004
-       label                  msg	000C
        label                start	001C
        label                 loop	0020
        label                  end	003C
        label              endprog	0044
        const               STDOUT	0000
+       label              counter	0004
+       label                  msg	000C

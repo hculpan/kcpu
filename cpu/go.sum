@@ -1,6 +1,5 @@
-github.com/hculpan/go-sdl-lib v0.0.0-20220823020419-69bda0e326cd h1:/MTgYboNKTqKohw9FiYvqo/X/D8WFyJvdYws1lSXnc0=
-github.com/hculpan/go-sdl-lib v0.0.0-20220823020419-69bda0e326cd/go.mod h1:xcA6LTAStd61UHrGuxJ7WQtBZAV3Vj9f9AMfulzLT54=
-github.com/hculpan/go-sdl-lib v0.0.0-20220826140256-b8a8b6a68d0a h1:kg62R7ZWDrm9N0wwfmfMOYleDmEI1k0I8zpCXKF0ZlU=
-github.com/hculpan/go-sdl-lib v0.0.0-20220826140256-b8a8b6a68d0a/go.mod h1:xcA6LTAStd61UHrGuxJ7WQtBZAV3Vj9f9AMfulzLT54=
+github.com/creasty/defaults v1.6.0 h1:ltuE9cfphUtlrBeomuu8PEyISTXnxqkBIoQfXgv7BSc=
+github.com/creasty/defaults v1.6.0/go.mod h1:iGzKe6pbEHnpMPtfDXZEr0NVxWnPTjb1bbDy08fPzYM=
+github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/veandco/go-sdl2 v0.4.25 h1:J5ac3KKOccp/0xGJA1PaNYKPUcZm19IxhDGs8lJofPI=
 github.com/veandco/go-sdl2 v0.4.25/go.mod h1:OROqMhHD43nT4/i9crJukyVecjPNYYuCofep6SNiAjY=

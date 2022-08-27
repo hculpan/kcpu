@@ -32,7 +32,7 @@ func main() {
 		return
 	}
 
-	if err := resources.Fonts.RegisterFont("HackBold-24", "built-in-fonts/TruenoLight.otf", 64); err != nil {
+	if err := resources.Fonts.RegisterFont("TruenoLight-24", "built-in-fonts/TruenoLight.otf", 64); err != nil {
 		log.Fatal(err)
 	}
 	if err := resources.Fonts.RegisterFont("CourierNew-24", "resources/fonts/Courier-New-Regular.ttf", 64); err != nil {
