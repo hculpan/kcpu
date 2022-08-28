@@ -55,6 +55,8 @@ func (s *SymbolsVisitor) ProcessLine(lineText string, lineNum int) bool {
 		switch strings.ToUpper(fields[0]) {
 		case ".CONST":
 			return s.constDirective(fields, lineText, lineNum)
+		case ".ORIGIN":
+			return s.originDirective(fields, lineText, lineNum)
 		case ".DB":
 			return s.dbDirective(fields, lineText, lineNum)
 		}
@@ -62,6 +64,18 @@ func (s *SymbolsVisitor) ProcessLine(lineText string, lineNum int) bool {
 		s.currAddress += 4
 	}
 
+	return false
+}
+func (s *SymbolsVisitor) originDirective(fields []string, lineText string, lineNum int) bool {
+	if len(fields) != 2 {
+		return s.addError(".origin must have 1 parameter, ADDRESS", lineNum)
+	}
+
+	addr, err := operations.FieldToAddress(fields[1])
+	if err != nil {
+		return s.addError(fmt.Sprintf("invalid address '%s': %s", fields[1], err.Error()), lineNum)
+	}
+	s.currAddress = addr
 	return false
 }
 

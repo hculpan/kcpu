@@ -97,10 +97,16 @@ func (b *BuildVisitor) ProcessLine(lineText string, lineNum int) bool {
 		return b.addOpAndErrors(operations.AssemblerShlOp(fields, lineNum, lineText, b.Symbols))
 	case "SHR":
 		return b.addOpAndErrors(operations.AssemblerShrOp(fields, lineNum, lineText, b.Symbols))
+	case "CALL":
+		return b.addOpAndErrors(operations.AssemblerCallOp(fields, lineNum, lineText, b.Symbols))
+	case "RET":
+		return b.addOpAndErrors(operations.AssemblerRetOp(fields, lineNum, lineText))
 	case ".CONST":
 		return b.addOpAndErrors(operations.AssemblerConstDirective(fields, lineNum, lineText, b.Symbols))
 	case ".DB":
 		return b.addOpsAndErrors(operations.AssemblerDbDirective(fields, lineNum, lineText, b.Symbols))
+	case ".ORIGIN":
+		return b.addOpAndErrors(operations.AssemblerOriginDirective(fields, lineNum, lineText, b.Symbols))
 	default:
 		return b.addErrors([]common.AssemblerError{common.NewAssemblerError("unknown operation '"+op+"'", lineNum)})
 	}
@@ -112,7 +118,13 @@ func (b *BuildVisitor) ToSrings() []string {
 	addr := 0
 	for _, op := range b.AssembledOps {
 		if operations.IsNoCodeOp(op) {
-			result = append(result, fmt.Sprintf("                      %s", op.OriginalLine))
+			switch op.Register {
+			case operations.ORIGIN_NOCODE:
+				addr = int(op.GetDataAsAddress())
+				result = append(result, fmt.Sprintf("                      %s", op.OriginalLine))
+			default:
+				result = append(result, fmt.Sprintf("                      %s", op.OriginalLine))
+			}
 		} else {
 			result = append(result, fmt.Sprintf("%04X%10s        %s", addr, strings.Replace(op.ToString(), ":", "", -1), op.OriginalLine))
 			addr += 4

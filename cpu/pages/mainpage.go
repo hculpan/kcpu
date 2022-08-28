@@ -7,18 +7,26 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+const (
+	START_NORMAL = iota
+	START_SINGLE_STEP
+)
+
 type MainPage struct {
 	component.BasePage
 }
 
 func NewMainPage(name string, x, y, width, height int32) *MainPage {
 	p := MainPage{}
+	p.Initialize()
 	p.Name = "MainPage"
 	p.SetPosition(0, 0)
 	p.SetSize(width, height)
 
-	p.AddChild(components.NewTerminalComponent(0, 0, width, height))
-	//	p.AddChild(components.NewHeaderComponent(0, 0, width, 40))
+	p.AddChild(components.NewTerminalComponent(0, 0, width-200, height-100))
+	p.AddChild(components.NewBottomBar(0, height-100, width, 100))
+	p.AddChild(components.NewRightBarComponent(width-200, 0, 200, height-100))
+	//	p.AddChild(components.NewLeftBarComponent(0, 0, 100, height-100))
 
 	return &p
 }

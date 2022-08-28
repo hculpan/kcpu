@@ -9,6 +9,6 @@ import "github.com/hculpan/kcpu/kasm/common"
  */
 
 func AssemblerConstDirective(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
-	result := NewAssembledOp(NOOP_OPCODE, 0xFF, 0, 0, originalLine)
+	result := NewAssembledOp(NOCODE_OPCODE, 0xFF, 0, 0, originalLine)
 	return &result, nil
 }

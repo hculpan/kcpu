@@ -12,12 +12,11 @@ type ErrorPage struct {
 
 func NewErrorPage(name string, x, y, width, height int32) *ErrorPage {
 	p := ErrorPage{}
+	p.Initialize()
 	p.Name = "ErrorPage"
 	p.SetPosition(0, 0)
 	p.SetSize(width, height)
 
-	// p.AddChild(components.NewTerminalComponent(0, 0, width, height))
-	//	p.AddChild(components.NewHeaderComponent(0, 0, width, 40))
 	yloc := height / 6
 	config := component.NewLabelConfig()
 	config.FontSize = 64

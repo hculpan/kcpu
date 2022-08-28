@@ -1,8 +1,9 @@
 Symbols:
-       label                start	001C
-       label                 loop	0020
-       label                  end	003C
-       label              endprog	0044
+       label            write_msg	0034
+       label       loop_write_msg	0038
+       label        end_write_msg	0054
        const               STDOUT	0000
-       label              counter	0004
-       label                  msg	000C
+       label                  msg	0004
+       label                start	001C
+       label                  end	0028
+       label           write_char	002C

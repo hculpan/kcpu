@@ -2,30 +2,17 @@
 
 .const      STDOUT      0
 
-:counter
-.db         'b', 0x02, 0x03, 'a', 0x05
 :msg
-.db         "Hello, world!", 0x00
+.db         "Hello there, world!", 0x0A, 0x00
 
 :start
             ld      R0, msg
-:loop
-            ld      R1, [R0]
-            cmp     R1, 0x00    ; Check if we've outputted all the character
-            jeq     end         ; Go to end if we have
-            shr     R1, 8
-            out     STDOUT, R1   ; Output the character
-            add     R0, 1       ; Next character to print
-            jmp     loop        ; Go to start of loop if we haven't
+            ld      R1, 0xFFAA
+            call    write_msg
 :end
-            ld      R1, 10      ; Put newline in character register
-            out     STDOUT, r1   ; Output the character
+            jmp     end     ; continuous loop
 
-:endprog
-            jmp     endprog     ; continuous loop
-            halt
-
-;:write_char
+:write_char
 ; write_char
 ; input: 
 ;   r1 = ascii of character to write
@@ -33,6 +20,25 @@
 ;   nothing
 ; return:
 ;   nothing
-;            OUT STOUT, r1   ; Output the character
-;            ret
+            out     STDOUT, r1   ; Output the character
+            ret
 
+:write_msg
+; input 
+;   r0  Address of null-terminated string
+; uses:
+;   nothing
+; returns:
+;   nothing
+            push    R1
+:loop_write_msg
+            ld      R1, [R0]
+            shr     r1, 8
+            cmp     R1, 0x00        ; Check if we've outputted all the character
+            jeq     end_write_msg   ; Go to end if we have
+            call    write_char
+            add     R0, 1           ; Next character to print
+            jmp     loop_write_msg  ; Go to start of loop
+:end_write_msg
+            pop     R1
+            ret

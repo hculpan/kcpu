@@ -13,6 +13,7 @@ type TerminalComponent struct {
 
 func NewTerminalComponent(x, y, width, height int32) *TerminalComponent {
 	result := &TerminalComponent{}
+	result.Initialize()
 
 	result.SetPosition(x, y)
 	result.SetSize(width, height)
@@ -21,9 +22,10 @@ func NewTerminalComponent(x, y, width, height int32) *TerminalComponent {
 }
 
 func (c *TerminalComponent) DrawComponent(r *sdl.Renderer) error {
-	for i := 0; i < 24; i++ {
+	for i := 0; i < 25; i++ {
 		bytes := model.Game.Cpu.GetVideoCharacterLine(i)
-		text, err := resources.Fonts.CreateTexture(string(bytes), sdl.Color{R: 50, G: 255, B: 50, A: 255}, "CourierNew-24", r)
+		// bytes := []byte("0123456789012345678901234567890123456789")
+		text, err := resources.Fonts.CreateTexture(string(bytes), sdl.Color{R: 50, G: 255, B: 50, A: 255}, "CourierNew-64", r)
 		if err != nil {
 			return err
 		}

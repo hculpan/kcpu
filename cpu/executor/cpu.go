@@ -20,9 +20,9 @@ import (
 *
 * 0x0000 - 0xEFFB : Empty (61,435 bytes)
 * 0xEFFC          : JMP 0xF3FC (1 byte)
-* 0xF000 - 0xF780 : Video memory (1,920 bytes)
-* 0xF781 - 0xF790 : Keyboard buffer (16 bytes)
-* 0xF791 - 0xF7FE : Empty (109 bytes)
+* 0xF000 - 0xF400 : Video memory (1,000 bytes)
+* 0xF400 - 0xF410 : Keyboard buffer (16 bytes)
+* 0xF411 - 0xF7FE : Empty (109 bytes)
 * 0xF7FF - 0xFFFF : Stack, starts at 0xFFFF
                     going down (2,048 bytes)
 ****************************************/
@@ -31,13 +31,20 @@ const FLAGS = 0xff
 
 const (
 	VIDEO_START = 0xF000
-	VIDEO_SIZE  = 1920
+	VIDEO_SIZE  = 1000
 	VIDEO_END   = VIDEO_START + VIDEO_SIZE
-	VIDEO_ROWS  = 24
+	VIDEO_ROWS  = 25
 	VIDEO_COLS  = 40
 )
 
+type CpuConfig struct {
+	ProgramFilename string
+	StartingAddress uint16
+}
+
 type Cpu struct {
+	Config CpuConfig
+
 	// Computation-related
 	PC        uint16
 	SP        uint16
@@ -51,8 +58,9 @@ type Cpu struct {
 	CursorStatus      bool
 }
 
-func NewCpu() Cpu {
+func NewCpu(config CpuConfig) Cpu {
 	result := Cpu{
+		Config:    config,
 		PC:        0,
 		SP:        0xFFFE,
 		Registers: make([]uint16, 256),
@@ -64,15 +72,39 @@ func NewCpu() Cpu {
 		CursorOn:          true,
 		CursorStatus:      true,
 	}
+
+	for i := 0; i < len(result.Memory); i++ {
+		result.Memory[i] = 0x00
+	}
+
 	result.LoadRom()
 
 	return result
 }
 
 func (c *Cpu) ToString() string {
-	result := fmt.Sprintf("PC:%04X  %02X:%s                Flags:%04X\n", c.PC, c.Memory[c.PC], c.disassembleInstruction(c.Memory[c.PC]), c.Registers[FLAGS])
-	result += fmt.Sprintf("  R0:%04X  R1:%04X  R2:%04X  R3:%04X  R4:%04X  R5:%04X  R6:%04X  R7:%04X",
-		c.Registers[0], c.Registers[1], c.Registers[2], c.Registers[3], c.Registers[4], c.Registers[5], c.Registers[6], c.Registers[7])
+	result := fmt.Sprintf("PC:%04X  %02X:%-4s   %02X  %02X%02X                           SP:%04X [%0s]\n", c.PC, c.Memory[c.PC],
+		c.disassembleInstruction(c.Memory[c.PC]), c.Memory[c.PC+1], c.Memory[c.PC+2], c.Memory[c.PC+3], c.SP, c.getStackString())
+	result += fmt.Sprintf("R0:%04X  R1:%04X  R2:%04X  R3:%04X  R4:%04X  R5:%04X  R6:%04X  R7:%04X                        Flags:%016b",
+		c.Registers[0], c.Registers[1], c.Registers[2], c.Registers[3], c.Registers[4], c.Registers[5], c.Registers[6], c.Registers[7], c.Registers[FLAGS])
+	return result
+}
+
+func (c *Cpu) getStackString() string {
+	result := ""
+
+	var addr int
+	for i := 2; i < 10; i++ {
+		addr = int(c.SP) + i
+		if addr > 0xFFFF {
+			break
+		}
+		result += fmt.Sprintf("%02X:", c.Memory[uint16(addr)])
+	}
+
+	if len(result) > 0 {
+		result = result[:len(result)-1]
+	}
 	return result
 }
 
@@ -86,6 +118,13 @@ func (c *Cpu) SoftReset() {
 	c.PC = 0
 	for i := 0; i < 8; i++ {
 		c.Registers[i] = 0
+	}
+
+	c.SP = 0xFFFE
+
+	c.CursorToPos(0, 0)
+	for i := 0; i < VIDEO_SIZE; i++ {
+		c.Memory[i+VIDEO_START] = 0
 	}
 }
 
@@ -105,6 +144,7 @@ func (c *Cpu) ExecuteSingle() error {
 	i := c.NextOperation()
 	err := c.Execute(i)
 	if err != nil {
+		fmt.Println(c.ToString())
 		return err
 	}
 
@@ -153,7 +193,7 @@ func (c *Cpu) SetCharacterAtCursor(ch byte) {
 		c.CursorToPos(0, rows)
 	default:
 		c.Memory[c.CursorPosInMemory] = ch
-		c.CursorPosInMemory += 2
+		c.CursorPosInMemory++
 		if c.CursorPosInMemory >= VIDEO_END {
 			c.CursorHome()
 		}
@@ -166,22 +206,22 @@ func (c *Cpu) CursorHome() {
 
 func (c *Cpu) CursorToPos(col int, row int) {
 	if row >= 0 && row < VIDEO_ROWS && col >= 0 && col < VIDEO_COLS {
-		c.CursorPosInMemory = VIDEO_START + (((VIDEO_COLS * row) + col) * 2)
+		c.CursorPosInMemory = VIDEO_START + ((VIDEO_COLS * row) + col)
 	}
 }
 
 func (c *Cpu) PosOfCursor() (int, int) {
-	result := (c.CursorPosInMemory - VIDEO_START) / 2
+	result := (c.CursorPosInMemory - VIDEO_START)
 	rows := result / VIDEO_COLS
 	cols := result % VIDEO_COLS
 	return cols, rows
 }
 
 func (c *Cpu) GetVideoCharacterLine(line int) []byte {
-	startingAddress := VIDEO_START + (line * VIDEO_COLS * 2)
-	result := make([]byte, 40)
+	startingAddress := VIDEO_START + (line * VIDEO_COLS)
+	result := make([]byte, VIDEO_COLS)
 	for i := 0; i < VIDEO_COLS; i++ {
-		ch := c.Memory[startingAddress+(i*2)]
+		ch := c.Memory[startingAddress+i]
 		if c.CursorOn && c.CursorStatus {
 			ccols, crows := c.PosOfCursor()
 			if crows == line && ccols == i {
@@ -193,6 +233,7 @@ func (c *Cpu) GetVideoCharacterLine(line int) []byte {
 		}
 		result[i] = ch
 	}
+
 	return result
 }
 
@@ -200,9 +241,9 @@ func (c *Cpu) disassembleInstruction(op byte) string {
 	switch op {
 	case 0x00:
 		return "NOOP"
-	case 0x01, 0x02, 0x03, 0x04:
+	case 0x01, 0x02, 0x03, 0x04, 0x05:
 		return "LD"
-	case 0x10:
+	case 0x10, 0x13, 0x14:
 		return "ST"
 	case 0x11:
 		return "STL"
@@ -222,8 +263,20 @@ func (c *Cpu) disassembleInstruction(op byte) string {
 		return "ADD"
 	case 0x41, 0x43, 0x45:
 		return "SUB"
-	case 0x50:
+	case 0x50, 0x51:
 		return "OUT"
+	case 0x60:
+		return "PUSH"
+	case 0x61:
+		return "POP"
+	case 0x70:
+		return "CALL"
+	case 0x71:
+		return "RET"
+	case 0x80:
+		return "SHL"
+	case 0x81:
+		return "SHR"
 	case 0xFE:
 		return "HALT"
 	default:
@@ -342,6 +395,15 @@ func (c *Cpu) Execute(i Instruction) error {
 		}
 		c.Registers[i.Register] = v
 		c.PC = c.PC + 4
+	case 0x70: // CALL addr
+		c.Push(c.PC)
+		c.PC = i.GetDataAsValue()
+	case 0x71: // RET
+		v, err := c.Pop()
+		if err != nil {
+			return err
+		}
+		c.PC = v + 4
 	case 0x80: // SHL r, value
 		v := c.Registers[i.Register]
 		bits := i.GetDataAsValue() % 16
@@ -352,7 +414,7 @@ func (c *Cpu) Execute(i Instruction) error {
 		bits := i.GetDataAsValue() % 16
 		c.Registers[i.Register] = v >> bits
 		c.PC = c.PC + 4
-	case 0xFF:
+	case 0xFE:
 		if i.Register == 1 {
 			fmt.Println(c.ToString())
 		}

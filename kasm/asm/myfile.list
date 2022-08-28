@@ -2,34 +2,22 @@
                         
                         .const      STDOUT      0
                         
-                        :counter
-  0004  62020361        .db         'b', 0x02, 0x03, 'a', 0x05
-  0008  05000000        .db         'b', 0x02, 0x03, 'a', 0x05
                         :msg
-  000C  48656C6C        .db         "Hello, world!", 0x00
-  0010  6F2C2077        .db         "Hello, world!", 0x00
-  0014  6F726C64        .db         "Hello, world!", 0x00
-  0018  21000000        .db         "Hello, world!", 0x00
+  0004  48656C6C        .db         "Hello there, world!", 0x0A, 0x00
+  0008  6F207468        .db         "Hello there, world!", 0x0A, 0x00
+  000C  6572652C        .db         "Hello there, world!", 0x0A, 0x00
+  0010  20776F72        .db         "Hello there, world!", 0x0A, 0x00
+  0014  6C64210A        .db         "Hello there, world!", 0x0A, 0x00
+  0018  00000000        .db         "Hello there, world!", 0x0A, 0x00
                         
                         :start
-  001C  0100000C                    ld      R0, msg
-                        :loop
-  0020  04010000                    ld      R1, [R0]
-  0024  21010000                    cmp     R1, 0x00    ; Check if we've outputted all the character
-  0028  3000003C                    jeq     end         ; Go to end if we have
-  002C  81010008                    shr     R1, 8
-  0030  51000001                    out     STDOUT, R1   ; Output the character
-  0034  40000001                    add     R0, 1       ; Next character to print
-  0038  33000020                    jmp     loop        ; Go to start of loop if we haven't
+  001C  01000004                    ld      R0, msg
+  0020  0101FFAA                    ld      R1, 0xFFAA
+  0024  70000034                    call    write_msg
                         :end
-  003C  0101000A                    ld      R1, 10      ; Put newline in character register
-  0040  51000001                    out     STDOUT, r1   ; Output the character
+  0028  33000028                    jmp     end     ; continuous loop
                         
-                        :endprog
-  0044  33000044                    jmp     endprog     ; continuous loop
-  0048  FFFFFFFF                    halt
-                        
-                        ;:write_char
+                        :write_char
                         ; write_char
                         ; input: 
                         ;   r1 = ascii of character to write
@@ -37,6 +25,25 @@
                         ;   nothing
                         ; return:
                         ;   nothing
-                        ;            OUT STOUT, r1   ; Output the character
-                        ;            ret
+  002C  51000001                    out     STDOUT, r1   ; Output the character
+  0030  71000000                    ret
                         
+                        :write_msg
+                        ; input 
+                        ;   r0  Address of null-terminated string
+                        ; uses:
+                        ;   nothing
+                        ; returns:
+                        ;   nothing
+  0034  60010000                    push    R1
+                        :loop_write_msg
+  0038  04010000                    ld      R1, [R0]
+  003C  81010008                    shr     r1, 8
+  0040  21010000                    cmp     R1, 0x00        ; Check if we've outputted all the character
+  0044  30000054                    jeq     end_write_msg   ; Go to end if we have
+  0048  7000002C                    call    write_char
+  004C  40000001                    add     R0, 1           ; Next character to print
+  0050  33000038                    jmp     loop_write_msg  ; Go to start of loop
+                        :end_write_msg
+  0054  61010000                    pop     R1
+  0058  71000000                    ret

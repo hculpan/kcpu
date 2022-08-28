@@ -2,7 +2,7 @@ package operations
 
 import "github.com/hculpan/kcpu/kasm/common"
 
-const HALT_OPCODE = 0xFF
+const HALT_OPCODE = 0xFE
 
 func AssemblerHalt(fields []string, lineNum int, originalLine string, symbolsTable common.SymbolsTable) (*AssembledOp, []common.AssemblerError) {
 	var result AssembledOp
